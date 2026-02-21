@@ -1,7 +1,8 @@
 from spade.agent import Agent
 from spade.behaviour import PeriodicBehaviour
+from spade.message import Message
 import asyncio
-from environment import Environment
+from environment import DisasterEnvironment
 
 class SensorAgent(Agent):
     class MonitorBehaviour(PeriodicBehaviour):
@@ -11,12 +12,19 @@ class SensorAgent(Agent):
 
         async def run(self):
             event = self.env.generate_event()
-            print(f"Detected {event['disaster']} with severity {event['severity']}")
+            print(f"Sensor detected {event['event']} with severity {event['severity']}")
+
+           
+            msg = Message(to="rescueagaent47@xmpp.jp") 
+            msg.set_metadata("performative", "inform")
+            msg.body = f"{event['event']} with severity {event['severity']}"
+            await self.send(msg)
+            print("Sensor sent disaster info to RescueAgent.")
 
     async def setup(self):
         print(f"{self.jid} starting...")
-        env = Environment()
-        b = self.MonitorBehaviour(env, period=5)
+        env = DisasterEnvironment()
+        b = self.MonitorBehaviour(env, period=5) 
         self.add_behaviour(b)
 
 async def main():
